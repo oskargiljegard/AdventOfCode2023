@@ -1,56 +1,45 @@
 use std::vec;
 
+fn parse_numbers(number_line: &str) -> Vec<i32> {
+    number_line
+        .split(" ")
+        .filter(|s| *s != "")
+        .map(|s| s.parse::<i32>().expect(format!("Failed to parse {}", s).as_str()))
+        .collect::<Vec<_>>()
+}
+
+fn find_matches(input: &str) -> Vec<i32> {
+    input.lines().enumerate().map(|(_, line)| {
+        let colon_pos = line.find(':').expect("No colon found");
+        let (winning_str, owned_str) = &line[(colon_pos+2)..].split_once(" | ").expect("No pipe found");
+        let winning = parse_numbers(winning_str);
+        let owned = parse_numbers(owned_str);
+        let num_matches = owned.iter().filter(|&x| winning.contains(x)).count();
+        num_matches as i32
+    }).collect::<Vec<_>>()
+}
+
+fn to_score(num_matches: i32) -> i32 {
+    match num_matches {
+        0 => 0,
+        n => 2i32.pow((n-1) as u32),
+    }
+}
 
 fn part1() {
     let input = include_str!("./input1.txt");
-    let mut sum = 0;
-    for line in input.lines() {
-        let colon_pos = line.find(':').expect("No colon found");
-        let num_part = &line[(colon_pos+2)..].split(" | ").collect::<Vec<&str>>();
-        let winning = num_part[0]
-            .split(" ")
-            .filter(|s| *s != "")
-            .map(|s| s.parse::<i32>().unwrap())
-            .collect::<Vec<_>>();
-        let owned = num_part[1]
-            .split(" ")
-            .filter(|s| *s != "")
-            .map(|s| s.parse::<i32>().unwrap())
-            .collect::<Vec<_>>();
-        let num_matches = owned.iter().filter(|&x| winning.contains(x)).count();
-        let points = match num_matches {
-            0 => 0,
-            n => 2i32.pow((n-1) as u32),
-        };
-        sum += points;
-    }
-    dbg!(sum);
+    let sum = find_matches(input).into_iter().map(to_score).sum::<i32>();
+    println!("Part 1: {}", sum);
 }
 
 fn part2() {
     let input = include_str!("./input1.txt");
+    let matches = find_matches(input);
     let num_games = input.lines().count();
-    let mut matches: Vec<i32> = vec![0; num_games];
-    for (game_index, line) in input.lines().enumerate() {
-        let colon_pos = line.find(':').expect("No colon found");
-        let num_part = &line[(colon_pos+2)..].split(" | ").collect::<Vec<&str>>();
-        let winning = num_part[0]
-            .split(" ")
-            .filter(|s| *s != "")
-            .map(|s| s.parse::<i32>().unwrap())
-            .collect::<Vec<_>>();
-        let owned = num_part[1]
-            .split(" ")
-            .filter(|s| *s != "")
-            .map(|s| s.parse::<i32>().unwrap())
-            .collect::<Vec<_>>();
-        let num_matches = owned.iter().filter(|&x| winning.contains(x)).count();
-        matches[game_index] = num_matches as i32;
-    }
     let mut instances = vec![1; num_games];
-    for (game_index, num_matches) in matches.iter().enumerate() {
+    for (game_index, num_matches) in matches.into_iter().enumerate() {
         let current_instances = instances[game_index];
-        for game_index_delta in 1..=*num_matches {
+        for game_index_delta in 1..=num_matches {
             let new_index = game_index + game_index_delta as usize;
             if new_index >= num_games {
                 break;
@@ -59,7 +48,7 @@ fn part2() {
         }
     }
     let num_copies = instances.iter().sum::<i32>();
-    dbg!(num_copies);
+    println!("Part 2: {}", num_copies);
 }
 
 fn main() {
