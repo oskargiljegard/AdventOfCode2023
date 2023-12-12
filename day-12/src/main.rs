@@ -44,6 +44,27 @@ fn count_options(record: &Record) -> usize {
     count
 }
 
+
+fn is_valid_partial(springs: &str, nums: &Vec<i32>, limit: usize) -> bool {
+    let spring_nums = springs[..limit]
+        .split(".")
+        .filter(|s| !s.is_empty())
+        .map(|s| s.len() as i32);
+    let zipped = spring_nums.zip(nums.iter().copied()).collect::<Vec<_>>();
+    true
+}
+
+fn count_options_fast(record: &Record) -> usize {
+    let mut count = 0;
+    let mut springs = record.springs.chars().collect::<Vec<_>>();
+
+    fn enter(limit: usize) {
+
+    }
+
+    0
+}
+
 fn part1() {
     let input = include_str!("input.txt");
     let records = input
